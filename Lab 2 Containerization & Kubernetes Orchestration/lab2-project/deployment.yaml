@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docker-lab-deployment
+  labels:
+    app: docker-lab
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: docker-lab
+  template:
+    metadata:
+      labels:
+        app: docker-lab
+    spec:
+      containers:
+      - name: docker-lab-container
+        image: docker-lab-app
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
