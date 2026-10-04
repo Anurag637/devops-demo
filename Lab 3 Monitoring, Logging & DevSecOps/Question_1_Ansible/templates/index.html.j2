@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ site_title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .box {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            border-top: 5px solid #2b6cb0;
+        }
+        h1 {
+            color: #2b6cb0;
+            margin-top: 0;
+            font-size: 24px;
+        }
+        .tag {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .info-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .info-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .info-table td.label {
+            font-weight: bold;
+            color: #4a5568;
+            width: 40%;
+        }
+        .status-ok {
+            color: #2f855a;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <span class="tag">Ansible Automated Node</span>
+        <h1>{{ site_title }}</h1>
+        <p>This web page was automatically deployed on the target node using an Ansible playbook.</p>
+
+        <table class="info-table">
+            <tr>
+                <td class="label">Node Hostname:</td>
+                <td>{{ ansible_hostname | default(inventory_hostname) }}</td>
+            </tr>
+            <tr>
+                <td class="label">IP Address:</td>
+                <td>{{ ansible_default_ipv4.address | default('172.20.0.1x') }}</td>
+            </tr>
+            <tr>
+                <td class="label">Operating System:</td>
+                <td>{{ ansible_distribution | default('Ubuntu') }} {{ ansible_distribution_version | default('22.04') }}</td>
+            </tr>
+            <tr>
+                <td class="label">Server Status:</td>
+                <td class="status-ok">Running (HTTP 200 OK)</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
