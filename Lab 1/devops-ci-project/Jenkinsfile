@@ -1,0 +1,108 @@
+// ==============================================================================
+// Jenkinsfile: Declarative CI/CD Pipeline
+// Experiment: Lab 1 - DevOps Foundations & Continuous Integration
+// Candidate: Anurag Pandey | B.Tech CSE (7th Semester)
+// Repository: https://github.com/Anurag637/devops-demo
+// ==============================================================================
+
+pipeline {
+    agent any
+
+    triggers {
+        // Trigger build automatically via SCM polling every 5 minutes if webhook not reached
+        pollSCM('H/5 * * * *')
+    }
+
+    environment {
+        APP_NAME     = "devops-ci-app"
+        DEPLOY_PORT  = "5000"
+        REPO_URL     = "https://github.com/Anurag637/devops-demo.git"
+    }
+
+    stages {
+        stage('Checkout SCM') {
+            steps {
+                echo "========================================================="
+                echo "STAGE 1: Source Code Checkout from GitHub"
+                echo "========================================================="
+                echo "Pulling latest commit from repository: ${env.REPO_URL}"
+                checkout scm
+            }
+        }
+
+        stage('Build & Dependencies') {
+            steps {
+                echo "========================================================="
+                echo "STAGE 2: Environment Setup & Dependency Installation"
+                echo "========================================================="
+                sh '''
+                    echo "Checking Python and Pip version..."
+                    python --version
+                    pip --version
+                    echo "Installing required application dependencies..."
+                    pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Automated Testing') {
+            steps {
+                echo "========================================================="
+                echo "STAGE 3: Automated Unit Testing & Code Verification"
+                echo "========================================================="
+                sh '''
+                    echo "Executing PyTest test suite..."
+                    pytest test_app.py -v --junitxml=test-reports.xml
+                '''
+            }
+        }
+
+        stage('Package Container') {
+            steps {
+                echo "========================================================="
+                echo "STAGE 4: Docker Container Packaging & Tagging"
+                echo "========================================================="
+                sh """
+                    echo "Building Docker Image: ${APP_NAME}:${BUILD_NUMBER}..."
+                    docker build -t ${APP_NAME}:${BUILD_NUMBER} .
+                    docker tag ${APP_NAME}:${BUILD_NUMBER} ${APP_NAME}:latest
+                    docker images | grep ${APP_NAME}
+                """
+            }
+        }
+
+        stage('Automate Deployment') {
+            steps {
+                echo "========================================================="
+                echo "STAGE 5: Automated Application Deployment & Health Check"
+                echo "========================================================="
+                sh """
+                    echo "Executing automated deployment script..."
+                    bash deploy.sh ${APP_NAME} ${DEPLOY_PORT}
+                """
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "========================================================="
+            echo "POST-ACTION: Archiving Test Reports & Artifacts"
+            echo "========================================================="
+            junit allowEmptyResults: true, testResults: 'test-reports.xml'
+            cleanWs deleteDirs: true, notFailBuild: true
+        }
+        success {
+            echo "========================================================="
+            echo "PIPELINE SUCCESS: Build #${BUILD_NUMBER} Deployed Successfully!"
+            echo "Application is live at: http://localhost:${DEPLOY_PORT}"
+            echo "========================================================="
+        }
+        failure {
+            echo "========================================================="
+            echo "PIPELINE FAILURE: Build #${BUILD_NUMBER} failed! Check console log."
+            echo "Automatic rollback initiated by deploy script."
+            echo "========================================================="
+        }
+    }
+}
